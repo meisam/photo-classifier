@@ -31,10 +31,26 @@ object PhotoMetadataExtractor extends Logging {
     val lines: JListWrapper[String] = JListWrapper(Files.readAllLines(path, StandardCharsets.UTF_8))
     val groupId = extractByKey("GroupKeyword", lines)
     val url = extractByKey("URL", lines)
-    val iso = extractByKey("ISO", lines)
-    val focalLength = extractByKey("FocalLength", lines)
+    val iso = {
+      val rawValue = extractByKey("ISO", lines)
+      logger.debug("ISO WAS DETERMINED TO BE %s".format(rawValue))
+      if (rawValue.getOrElse("A").forall(Character.isDigit(_))) {
+        logger.debug("ISO WAS DETERMINED TO BE %s".format(rawValue))
+        if (rawValue.getOrElse("0") != "0") {
+          rawValue
+        }
+      }
+      Option.empty[String]
+    }
+    val focalLength = {
+      val rawValue = extractByKey("FocalLength", lines)
+      if (rawValue.getOrElse("0.0 mm").startsWith("0.0 mm")) Option.empty[String] else rawValue
+    }
     val exposureTime = extractByKey("ExposureTime", lines)
-    val aperture = extractByKey("MaxApertureValue", lines)
+    val aperture = {
+      val rawValue = extractByKey("MaxApertureValue", lines)
+      if (rawValue.getOrElse("inf") == "inf") Option.empty[String] else rawValue
+    }
     val flash = extractByKey("Flash", lines)
     val dateTimeOriginal = extractByKey("DateTimeOriginal", lines)
 
@@ -75,4 +91,62 @@ class PhotoRawMetadata(val photoId: String
                        , val flash: String
                        , val dateTimeOriginal: String) {
 
+  override def toString: String = {
+    "{photoId=%s, groupId=%s, url=%s, iso=%s, focalLength=%s, exposureTime=%s, aperture=%s, flash=%s, dateTimeOriginal=%s}".format(
+      photoId, groupId, url, iso, focalLength, exposureTime, aperture, flash, dateTimeOriginal
+    )
+
+  }
+}
+
+class PhotoMetadata(val photoId: String
+                    , val groupId: String
+                    , val url: String
+                    , val iso: Double
+                    , val focalLength: Double
+                    , val exposureTime: Double
+                    , val aperture: Double
+                    , val flash: Double
+                    , val dateTimeOriginal: Double) {
+
+  override def toString: String = {
+    "{photoId=%s, groupId=%s, url=%s, iso=%s, focalLength=%s, exposureTime=%s, aperture=%s, flash=%s, dateTimeOriginal=%s}".format(
+      photoId, groupId, url, iso, focalLength, exposureTime, aperture, flash, dateTimeOriginal
+    )
+  }
+}
+
+object PhotoMetadata extends Logging {
+  override def logger: Logger = Logger.getLogger(PhotoMetadata.getClass)
+
+  def formRawMetadata(rawMetadata: PhotoRawMetadata): PhotoMetadata = {
+    logger.debug("Trying to find values for %s".format(rawMetadata))
+    val photoId = rawMetadata.photoId
+    val groupId = rawMetadata.groupId
+    val url = rawMetadata.url
+    val iso: Int = rawMetadata.iso.toInt
+    val focalLength: Double = rawMetadata.focalLength.split(" ")(0).toDouble
+    val exposureTime: Double = if (rawMetadata.exposureTime.contains("/")) {
+      1.0 / rawMetadata.exposureTime.split("/")(1).toDouble
+    } else {
+      rawMetadata.exposureTime.toDouble
+    }
+    val aperture = rawMetadata.aperture.toDouble
+    val flash = if (rawMetadata.flash.toLowerCase.contains("off")
+      || rawMetadata.flash.toLowerCase.contains("no")) {
+      0.0
+    }
+    else {
+      if (rawMetadata.flash.toLowerCase.contains("fired") ||
+        rawMetadata.flash.toLowerCase.contains("on")) {
+        1.0
+      }
+      else {
+        throw new IllegalArgumentException("Value %s is not for flash settings".format(rawMetadata.flash))
+      }
+    }
+    val dateTimeOriginal = rawMetadata.dateTimeOriginal.split("[\\s:]")(3).toDouble
+
+    new PhotoMetadata(photoId, groupId, url, iso, focalLength, exposureTime, aperture, flash, dateTimeOriginal)
+  }
 }

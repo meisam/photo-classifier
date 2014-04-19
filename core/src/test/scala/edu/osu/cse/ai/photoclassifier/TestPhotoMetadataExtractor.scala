@@ -38,21 +38,21 @@ class TestPhotoMetadataExtractor extends FunSuite with BeforeAndAfterAll with Sh
     assert(validMetadataFiles.filter(_.photoId.equals(INVALID_METADATA_FILE_NAME)).length === 0)
   }
 
-  test("test getMetadata for valid metadata file") {
+  test("getMetadata for valid raw metadata file") {
     val path = fileSystem.getPath(BASE_PHOTO_DIR, VALID_METADATA_FILE_NAME).toFile
 
     val metadata = PhotoMetadataExtractor.getMetadata(path)
     assert(metadata.isDefined)
   }
 
-  test("test getMetadata for invalid metadata file") {
+  test("getMetadata for invalid raw metadata file") {
     val path = fileSystem.getPath(BASE_PHOTO_DIR, INVALID_METADATA_FILE_NAME).toFile
     val metadata = PhotoMetadataExtractor.getMetadata(path)
 
     assert(metadata.isEmpty)
   }
 
-  test("test valid classes") {
+  test("valid clusters") {
     val photoDbDir = fileSystem.getPath(BASE_PHOTO_DIR).toFile
     val metadataFiles = PhotoMetadataExtractor.getAllMetadata(photoDbDir)
     val validMetadataFiles = metadataFiles.filter(md => md.isDefined).map(_.get)
@@ -61,4 +61,50 @@ class TestPhotoMetadataExtractor extends FunSuite with BeforeAndAfterAll with Sh
     val suspensionFiles = validMetadataFiles.filter(x => !(validGroups.contains(x.groupId)))
     assert(suspensionFiles.length === 0)
   }
+
+  test("for valid metadata file") {
+    val path = fileSystem.getPath(BASE_PHOTO_DIR, VALID_METADATA_FILE_NAME).toFile
+
+    val rawMetadata = PhotoMetadataExtractor.getMetadata(path)
+    val metadata: PhotoMetadata = PhotoMetadata.formRawMetadata(rawMetadata.get)
+    assert(metadata.iso === 1000)
+    assert(metadata.focalLength === 35.00)
+    assert(metadata.exposureTime === (1.0 / 80))
+    assert(metadata.aperture === 1.7)
+    assert(metadata.dateTimeOriginal === 15.0)
+  }
+
+  test("file with bad iso value") {
+    val path = fileSystem.getPath(BASE_PHOTO_DIR, "13294031173.txt").toFile
+
+    val rawMetadata = PhotoMetadataExtractor.getMetadata(path)
+    val metadata: PhotoMetadata = PhotoMetadata.formRawMetadata(rawMetadata.get)
+    assert(metadata.iso === 16000)
+    assert(metadata.focalLength === 35.00)
+    assert(metadata.exposureTime === (1.0 / 125))
+    assert(metadata.aperture === 2.0)
+    assert(metadata.dateTimeOriginal === 0.0)
+  }
+  test("read all valid metadata files") {
+    val photoDbDir = fileSystem.getPath(BASE_PHOTO_DIR).toFile
+    val files = PhotoMetadataExtractor.getAllMetadata(photoDbDir).filter(_.isDefined).map(_.get)
+    val metadataObjects: Array[PhotoMetadata] = files.map(md => PhotoMetadata.formRawMetadata(md))
+    metadataObjects.foreach(metadata => {
+      println(metadata.url)
+      assert(metadata.iso <= 64000)
+      println(metadata.iso)
+      assert(metadata.iso >= 10)
+      assert(metadata.focalLength >= 2.00)
+      assert(metadata.focalLength <= 800.00)
+      assert(metadata.exposureTime >= (1.0 / 10000))
+      assert(metadata.exposureTime <= (2 * 60 * 60)) // two hours
+      assert(metadata.aperture >= 0.4)
+      assert(metadata.aperture <= 30.)
+      assert(Seq(0.0, 1.0).contains(metadata.flash))
+      assert(metadata.aperture <= 30.)
+      assert(metadata.dateTimeOriginal >= 0.0)
+      assert(metadata.dateTimeOriginal <= 24.0)
+    })
+  }
+
 }
