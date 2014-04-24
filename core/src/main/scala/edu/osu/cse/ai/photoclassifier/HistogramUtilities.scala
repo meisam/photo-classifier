@@ -37,6 +37,22 @@ object HistogramUtilities extends Logging {
     histograms.flatMap(h => h.getBins).flatten.toArray.map(_.toDouble)
   }
 
+  /**
+   * Returns histograms for Regions of interest.
+   * Regions of interest are the center tile and the 4 corner tiles.
+   * This method returns 3 histograms (Red, Blue, Green) for each region.
+   * @param file
+   * The image file
+   * @return
+   * A sequence of histograms for the file.
+   */
+  def roiHistograms(file: File): Seq[Histogram] = {
+    val image = JAI.create("fileload", file.getPath)
+    logger.debug("getting tiles for %s".format(file.getName))
+    val tileImages = getTile(image)
+    logger.debug("# of tiled images= %4d for file= %s".format(tileImages.size, file))
+    tileImages.map(image => getHistogram(image))
+  }
   def getHistogram(image: PlanarImage): Histogram = {
     // set up the histogram
     val bins = Array(5)
@@ -56,26 +72,6 @@ object HistogramUtilities extends Logging {
     val histogram = op.getProperty("histogram").asInstanceOf[Histogram]
 
     histogram
-  }
-
-  def processFile(file: File): Seq[Histogram] = {
-    val image = JAI.create("fileload", file.getPath)
-    //    val channels = Seq(
-    //      ("red", Array(0xFF, 0x00, 0x00)),
-    //      ("green", Array(0x00, 0xFF, 0x00)),
-    //      ("blue", Array(0x00, 0x00, 0xFF))
-    //    )
-    //    val allChannels: Seq[RenderedOp] = channels.map(ch => getChanel(ch._2)(image))
-    //    allChannels.zip(channels.map(_._1)).foreach(x => storeImage(x._1, x._2))
-    val tileImages = getTile(image)
-    //    tileImages.zipWithIndex.foreach({
-    //      case (image, tileIndex) => storeImage(image, tileIndex.toString)
-    //    })
-    logger.debug("# of tiled images = %d".format(tileImages.size))
-    tileImages.zipWithIndex.foreach({
-      case (tile, i) => storeImage(tile, i.toString)
-    })
-    tileImages.map(image => getHistogram(image))
   }
 
   /**
