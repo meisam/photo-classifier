@@ -111,6 +111,15 @@ object HistogramUtilities extends Logging {
     })
   }
 
+  //  private[HistogramUtilities] def storeImage(image: PlanarImage, name: String): RenderedOp = {
+  //    val pb = new ParameterBlock()
+  //    pb.addSource(image)
+  //    // im as the source image
+  //    pb.add("%s.tiff".format(name))
+  //    pb.add(null)
+  //    JAI.create("filestore", pb)
+  //  }
+  //
   def getChanel(channelsMask: Array[Int])(image: PlanarImage) = {
     val pb = new ParameterBlock()
     pb.addSource(image)
