@@ -78,10 +78,15 @@ object PhotoMetadataExtractor extends Logging {
     val flash = extractByKey("Flash", lines)
     val dateTimeOriginal = extractByKey("DateTimeOriginal", lines)
 
-    if (groupId.isDefined && url.isDefined && iso.isDefined && focalLength.isDefined && exposureTime.isDefined && aperture.isDefined && flash.isDefined && dateTimeOriginal.isDefined)
+    if (groupId.isDefined && url.isDefined && iso.isDefined && focalLength.isDefined && exposureTime.isDefined && aperture.isDefined && flash.isDefined && dateTimeOriginal.isDefined) {
+      logger.debug("All features have valid values.")
       Option(
         new PhotoRawMetadata(photoId, groupId.get, url.get, iso.get, focalLength.get, exposureTime.get, aperture.get, flash.get, dateTimeOriginal.get))
-    else Option.empty[PhotoRawMetadata]
+    } else {
+      logger.debug("At least one of the features is not valid. Check %s".format(
+        (photoId, groupId, url, iso, focalLength, exposureTime, aperture, flash, dateTimeOriginal).toString()))
+      Option.empty[PhotoRawMetadata]
+    }
   }
 
   def extractByKey(key: String, lines: JListWrapper[String], separator: String = "="): Option[String] = {
