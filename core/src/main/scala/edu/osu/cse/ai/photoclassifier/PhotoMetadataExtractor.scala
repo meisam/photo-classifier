@@ -40,6 +40,14 @@ object PhotoMetadataExtractor extends Logging {
     traverseAllFiles(parentDir).map(x => getMetadata(x))
   }
 
+  def getAllValidMetadata(parentDir: File): Array[PhotoMetadata] = {
+    val metadatas = getAllMetadata(parentDir).filter(_.isDefined)
+    logger.debug("#All raw metadata files=%d".format(metadatas.length))
+    val mds = metadatas.map(md => PhotoMetadata.formRawMetadata(md.get))
+    logger.debug("#All nice metadata files=%d".format(mds.length))
+    mds
+  }
+
   def getMetadata(file: File): Option[PhotoRawMetadata] = {
 
     logger.debug("Reading file" + file)
