@@ -45,7 +45,7 @@ class HistogramUtilitiesTest extends FunSuite with BeforeAndAfterAll with Should
 
   def dumpHistograms(file: File) {
     println()
-    val histograms: Seq[Histogram] = HistogramUtilities.processFile(file)
+    val histograms: Seq[Histogram] = HistogramUtilities.roiHistograms(file)
     println(file.getName)
     val features: Array[Double] = HistogramUtilities.histogramToFeaturesArray(histograms)
     println(util.Arrays.toString(features))

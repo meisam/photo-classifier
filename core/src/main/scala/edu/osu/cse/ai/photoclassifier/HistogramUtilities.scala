@@ -53,7 +53,8 @@ object HistogramUtilities extends Logging {
     logger.debug("# of tiled images= %4d for file= %s".format(tileImages.size, file))
     tileImages.map(image => getHistogram(image))
   }
-  def getHistogram(image: PlanarImage): Histogram = {
+
+  private[HistogramUtilities] def getHistogram(image: PlanarImage): Histogram = {
     // set up the histogram
     val bins = Array(5)
     val low = Array(0.0)
@@ -70,7 +71,6 @@ object HistogramUtilities extends Logging {
 
     val op = JAI.create("histogram", pb, null)
     val histogram = op.getProperty("histogram").asInstanceOf[Histogram]
-
     histogram
   }
 
@@ -79,7 +79,7 @@ object HistogramUtilities extends Logging {
    * @param image
    * @return
    */
-  def getTile(image: PlanarImage): Seq[TiledImage] = {
+  private[HistogramUtilities] def getTile(image: PlanarImage): Seq[TiledImage] = {
     val tilesDimension = 7
     val tiledImage = new TiledImage(image, image.getWidth / tilesDimension, image.getHeight / tilesDimension)
     val tiles = Seq((tilesDimension / 2, tilesDimension / 2, tilesDimension) //center
