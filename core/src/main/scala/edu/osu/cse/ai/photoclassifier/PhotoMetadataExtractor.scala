@@ -28,7 +28,7 @@ import java.io.File
 /**
  * Created by fathi on 4/17/14.
  */
-object PhotoMetadataExtractor extends Logging {
+object PhotoMetadataExtractor extends Logging with Serializable{
   override def logger: Logger = Logger.getLogger(PhotoMetadataExtractor.getClass)
 
 
@@ -126,7 +126,7 @@ class PhotoRawMetadata(val photoId: String
                        , val exposureTime: String
                        , val aperture: String
                        , val flash: String
-                       , val dateTimeOriginal: String) {
+                       , val dateTimeOriginal: String) extends Serializable{
 
   override def toString: String = {
     "{photoId=%s, groupId=%s, url=%s, iso=%s, focalLength=%s, exposureTime=%s, aperture=%s, flash=%s, dateTimeOriginal=%s}".format(
@@ -144,7 +144,7 @@ class PhotoMetadata(val photoId: String
                     , val exposureTime: Double
                     , val aperture: Double
                     , val flash: Double
-                    , val dateTimeOriginal: Double) {
+                    , val dateTimeOriginal: Double) extends Serializable{
 
   override def toString: String = {
     "{photoId=%s, groupId=%s, url=%s, iso=%s, focalLength=%s, exposureTime=%s, aperture=%s, flash=%s, dateTimeOriginal=%s}".format(
@@ -153,7 +153,7 @@ class PhotoMetadata(val photoId: String
   }
 }
 
-object PhotoMetadata extends Logging {
+object PhotoMetadata extends Logging with Serializable{
   override def logger: Logger = Logger.getLogger(PhotoMetadata.getClass)
 
   def formRawMetadata(rawMetadata: PhotoRawMetadata): PhotoMetadata = {
