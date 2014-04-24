@@ -1,0 +1,12 @@
+GroupID=1063369@N24
+GroupName=Landscape Photographs - P 1 A 1
+GroupKeyword=landscape
+URL=http://farm6.static.flickr.com/5546/10777363625_5555a000af_c.jpg
+Title=Tree in Moravian waves
+Author=98273016@N08
+Quality=100%
+IPTCDigest=00000000000000000000000000000000
+DCTEncodeVersion=100
+APP14Flags0=[14], Encoded with Blend=1 downsampling
+APP14Flags1=(none)
+ColorTransform=YCbCr

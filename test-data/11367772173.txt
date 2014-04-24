@@ -1,0 +1,10 @@
+GroupID=1646577@N20
+GroupName=flower power!
+GroupKeyword=flowers
+URL=http://farm3.static.flickr.com/2874/11367772173_7b183ef34c_c.jpg
+Title=flor 4
+Author=101348939@N06
+JFIFVersion=1.01
+ResolutionUnit=None
+XResolution=1
+YResolution=1

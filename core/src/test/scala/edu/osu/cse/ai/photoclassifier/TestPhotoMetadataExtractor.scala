@@ -30,7 +30,7 @@ import java.nio.file.FileSystem
 class TestPhotoMetadataExtractor extends FunSuite with BeforeAndAfterAll with ShouldMatchers {
   self: Suite =>
 
-  val BASE_PHOTO_DIR = "scratch"
+  val BASE_PHOTO_DIR = "test-data"
   val VALID_METADATA_FILE_NAME: String = "13673933685.txt"
   val INVALID_METADATA_FILE_NAME: String = "13084299633.txt"
 
@@ -46,7 +46,7 @@ class TestPhotoMetadataExtractor extends FunSuite with BeforeAndAfterAll with Sh
     val fileNames = files.map(_.getName)
     assert(fileNames.contains(VALID_METADATA_FILE_NAME))
     assert(fileNames.contains(INVALID_METADATA_FILE_NAME))
-    assert(fileNames.length === 8713)
+    assert(fileNames.length === 30)
   }
 
   test("get all metadata") {

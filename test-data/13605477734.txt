@@ -1,0 +1,12 @@
+GroupID=375216@N23
+GroupName=Landscapes!!!
+GroupKeyword=landscape
+URL=http://farm4.static.flickr.com/3775/13605477734_44dab9e777_c.jpg
+Title=image
+Author=20577427@N00
+JFIFVersion=1.01
+ResolutionUnit=None
+XResolution=1
+YResolution=1
+Orientation=Horizontal (normal)
+ColorSpace=sRGB

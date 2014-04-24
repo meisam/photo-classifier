@@ -1,0 +1,10 @@
+GroupID=1597446@N21
+GroupName=Portraits Only
+GroupKeyword=portraits
+URL=http://farm8.static.flickr.com/7382/13517779073_1c4471eaec_c.jpg
+Title=
+Author=96624193@N05
+JFIFVersion=1.01
+ResolutionUnit=inches
+XResolution=96
+YResolution=96

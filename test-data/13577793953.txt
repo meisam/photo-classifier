@@ -1,0 +1,10 @@
+GroupID=929911@N23
+GroupName=Landscape & Wildlife Photos of the World
+GroupKeyword=landscape
+URL=http://farm8.static.flickr.com/7340/13577793953_3153964146_c.jpg
+Title=Arcobaleno sulla cascata
+Author=35518528@N07
+JFIFVersion=1.01
+ResolutionUnit=None
+XResolution=1
+YResolution=1
