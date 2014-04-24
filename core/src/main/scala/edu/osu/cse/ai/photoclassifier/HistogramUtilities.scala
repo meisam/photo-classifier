@@ -120,23 +120,6 @@ object HistogramUtilities extends Logging {
   //    JAI.create("filestore", pb)
   //  }
   //
-  def getChanel(channelsMask: Array[Int])(image: PlanarImage) = {
-    val pb = new ParameterBlock()
-    pb.addSource(image)
-    pb.add(channelsMask)
-    JAI.create("andconst", pb)
-  }
-
-  def storeImage(image: PlanarImage, name: String) = {
-    val pb = new ParameterBlock()
-    pb.addSource(image)
-    // im as the source image
-    pb.add("%s.tiff".format(name))
-    pb.add(null)
-    val x = JAI.create("filestore", pb)
-    println("height = %d".format(x.getHeight))
-  }
-
   def main(args: Array[String]) = {
   }
 
