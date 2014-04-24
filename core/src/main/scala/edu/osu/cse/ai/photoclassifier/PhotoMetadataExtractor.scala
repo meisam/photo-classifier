@@ -54,13 +54,18 @@ object PhotoMetadataExtractor extends Logging {
       val rawValue = extractByKey("ISO", lines)
       logger.debug("ISO WAS DETERMINED TO BE %s".format(rawValue))
       if (rawValue.getOrElse("A").forall(Character.isDigit(_))) {
-        logger.debug("ISO WAS DETERMINED TO BE %s".format(rawValue))
+        logger.debug("ISO WAS DETERMINED TO BE all digits %s".format(rawValue))
         if (rawValue.getOrElse("0") != "0") {
+          logger.debug("ISO WAS DETERMINED TO BE non zero %s".format(rawValue))
           rawValue
+        } else {
+          Option.empty[String]
         }
+      } else {
+        Option.empty[String]
       }
-      Option.empty[String]
     }
+
     val focalLength = {
       val rawValue = extractByKey("FocalLength", lines)
       if (rawValue.getOrElse("0.0 mm").startsWith("0.0 mm")) Option.empty[String] else rawValue
