@@ -55,8 +55,6 @@ object HistogramUtilities extends Logging {
     val op = JAI.create("histogram", pb, null)
     val histogram = op.getProperty("histogram").asInstanceOf[Histogram]
 
-    // get histogram contents
-    println("histogram.getBins.length=%d".format(histogram.getBins.length))
     histogram
   }
 
