@@ -50,7 +50,7 @@ object PhotoMetadataExtractor extends Logging with Serializable{
 
   def getMetadata(file: File): Option[PhotoRawMetadata] = {
 
-    logger.debug("Reading file" + file)
+    logger.debug("Reading file " + file)
     logger.debug("Type of this scala object is %s".format(PhotoMetadataExtractor.getClass))
     val photoId = file.getName
     logger.debug(" Match: photoID is %s".format(photoId))
