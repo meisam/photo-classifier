@@ -148,7 +148,7 @@ class HistogramUtilitiesTest extends FunSuite with BeforeAndAfterAll with Should
   //    println(str)
   //  }
 
-  test("load and run model") {
+  test("load and run model for portrait prediction") {
     val dataPoints: RDD[LabeledPoint] = MLUtils.loadLabeledData(sc, "labeledPoints")
     val fileNames = sc.textFile("fileNames")
 
@@ -156,7 +156,7 @@ class HistogramUtilitiesTest extends FunSuite with BeforeAndAfterAll with Should
 
     val trainPoints: RDD[(String, LabeledPoint)] = allPoints.filter(_._1.contains("11"))
     val testPoints: RDD[(String, LabeledPoint)] = allPoints.filter(_._1.contains("11") == false)
-    val clusteringModel: LogisticRegressionModel = LogisticRegressionWithSGD.train(trainPoints.map(_._2), 10000)
+    val clusteringModel: LogisticRegressionModel = LogisticRegressionWithSGD.train(trainPoints.map(_._2), 2000)
     println(clusteringModel.intercept)
     println(clusteringModel.weights.mkString(","))
 
@@ -174,6 +174,91 @@ class HistogramUtilitiesTest extends FunSuite with BeforeAndAfterAll with Should
     println(str)
   }
 
+  def fixLabels(points: RDD[(String, LabeledPoint)], desiredLabel: String): RDD[(String, LabeledPoint)] = {
+    points.map({
+      case (fileName, labeledPoint) => {
+//        println(fileName)
+        val md = PhotoMetadataExtractor.getMetadata(new File(fileName.replace("jpg", "txt")))
+        val newLabel: Double = if (md.get.groupId == desiredLabel) 1.0 else 0.0
+        (fileName, new LabeledPoint(newLabel, labeledPoint.features))
+      }
+    }
+
+    )
+
+  }
+
+  test("load and run model for landscape prediction") {
+    val dataPoints: RDD[LabeledPoint] = MLUtils.loadLabeledData(sc, "labeledPoints")
+    val fileNames = sc.textFile("fileNames")
+
+    val allPoints = fixLabels(fileNames.zip(dataPoints).filter(_._2.features.length == 75), "flowers")
+
+    val trainPoints: RDD[(String, LabeledPoint)] = allPoints.filter(_._1.contains("11"))
+    val testPoints: RDD[(String, LabeledPoint)] = allPoints.filter(_._1.contains("11") == false)
+    val clusteringModel: LogisticRegressionModel = LogisticRegressionWithSGD.train(trainPoints.map(_._2), 500)
+    println(clusteringModel.intercept)
+    println(clusteringModel.weights.mkString(","))
+
+    val predictions: RDD[Double] = clusteringModel.predict(testPoints.map(_._2.features))
+    val zipped = predictions.zip(testPoints).map({
+      case (d, p) => {
+        math.abs(p._2.label - d).toInt
+      }
+    })
+    val results = zipped.collect
+    val wrongCount = results.reduce(_ + _)
+
+    println("#correct/all = %d/%d = %3f%%".format(results.size - wrongCount, results.size, 100.0 - 100.0 * wrongCount / results.size))
+    val str = results.mkString("\n")
+    println(str)
+  }
+
+  test("predict portrait by weights and bias") {
+
+    val bias = 0.8973637736114621
+    val weights = Array(27.597362511333298, 4.754193151154503, -5.823551456961994, -14.627563271337408, -15.851642324946244, -11.788946936353167, -10.302539067857033, -17.991119596685, 17.684515597044047, 18.446888613095748, -29.321222535253526, 22.864380737176145, 13.32789197194986, 10.74956970808049, -21.571821272707854, -1.368798865968949, 1.923268761154226, 4.769061305658358, 17.672026192656116, -26.94675878425704, -14.704869058114104, -13.04730583088602, -10.149134945519242, -12.827786973034097, 46.77789541679279, 8.939388392268057, 10.09363474097748, -9.818523455124607, -10.663144962224912, -2.502556106657395, -10.864842133887247, -12.08795993075973, 8.430821453228152, -5.065881010320968, 15.636660230982285, 12.7418776012566, 12.981638206176545, -24.413294879878208, 3.6659931837191695, -8.927415502029184, -22.381661318601722, 0.37694065982460634, 4.435845246062957, 18.811316360985117, -5.193642339027374, -3.692530289289115, -17.406604746954663, 9.91634318602135, -12.112178307529947, 19.343768766994838, -5.342802583902086, 9.180000010464585, -5.445435733054637, 9.788960832737754, -12.131923917002347, -0.17997541063375966, -1.9787792818305965, 2.1557114107929074, -2.0882338683925936, -1.8599242406932213, -1.6989046331277615, 2.991453557490161, 5.564745539491543, -0.18295191370488206, -10.625543940907686, 10.359191575651732, 0.9368823237073474, -3.131009889610704, -20.4871567084037, 8.37089130789958, -28.219814805021418, 2.8861838842025764, -0.5511169660275925, 25.310121288885817, -3.3765747928002905)
+    val model = new LogisticRegressionModel(weights, bias)
+
+    val file = fileSystem.getPath(BASE_PHOTO_DIR, BRIGHT_PHOTO).toFile
+
+
+    val photoDbDir = fileSystem.getPath(BASE_PHOTO_DIR).toFile
+
+    val photoFiles: Array[File] = photoDbDir.listFiles.filter(_.getName.endsWith("jpg"))
+
+    val histograms = photoFiles.map(HistogramUtilities.roiHistograms(_))
+    val features = histograms.map(HistogramUtilities.histogramToFeaturesArray(_))
+    val photoFeaturePairs = photoFiles.zip(features).filter(_._2.length == 75)
+    val filePredictionPairs = photoFeaturePairs.map({
+      case (file, features) => (file, model.predict(features).toInt)
+    })
+    val portraits = filePredictionPairs.filter(_._2 == 1).map(_._1)
+    val nonPortraits = filePredictionPairs.filter(_._2 == 0).map(_._1)
+
+    val portraitStr = portraits.map(x => """<img src="%s"/>""".format(x.getPath)).mkString(
+      """
+  <html>
+  <body>
+      """.stripMargin,
+      "\n",
+      """</body>
+  </html>""".stripMargin
+    )
+    println(portraitStr)
+    println("------------------------")
+    val nonPortraitStr = nonPortraits.map(x => """<img src="%s"/>""".format(x.getPath)).mkString(
+      """
+  <html>
+  <body>
+      """.stripMargin,
+      "\n",
+      """</body>
+  </html>""".stripMargin
+    )
+    println(nonPortraitStr)
+  }
+
   test("extract histogram data into file") {
     val photoDbDir = fileSystem.getPath("scratch").toFile
     assert(photoDbDir.exists())
@@ -184,9 +269,6 @@ class HistogramUtilitiesTest extends FunSuite with BeforeAndAfterAll with Should
     val validPhotoMdFiles: Array[(File, PhotoRawMetadata)] = validPhotoMdOptFiles.filter(_._2.isDefined).map({
       case (f, md) => (f, md.get)
     })
-    //        .map({
-    //      case (f, md) => (f, md)
-    //    })
 
     val validPhotoFiles = validPhotoMdFiles.map({
       case (file, md) => (new File(file.getParentFile, file.getName.replace("txt", "jpg")), md)
@@ -197,7 +279,6 @@ class HistogramUtilitiesTest extends FunSuite with BeforeAndAfterAll with Should
       case (file, md) => {
         try {
           val hists = HistogramUtilities.roiHistograms(file)
-          //        println("NOT mv %s ../garbage".format(file.getName.replace("jpg", "*")))
           (file, md, hists)
         }
         catch {
